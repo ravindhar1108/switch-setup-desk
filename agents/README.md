@@ -1,34 +1,25 @@
 # Setup Desk Agents
 
-Setup Desk divides the task of repository setup and validation across three specialized agents orchestrated by [Switch](https://github.com/sandbox-quantum/switch). Rather than relying on a single monolithic prompt, each agent maintains a dedicated role, strict operational boundaries, and explicit handoff contracts.
+Instead of giving one AI agent a giant prompt and hoping it doesn't get confused, Setup Desk splits the work between three focused agents in [Switch](https://github.com/sandbox-quantum/switch):
+
+| Agent | Job | Permissions |
+|---|---|---|
+| [**Scout**](scout.md) | Reads the repo, documentation, and GitHub PRs/issues to catch gotchas before doing anything. | **Read-only**. Never runs commands or edits files. |
+| [**Setup**](setup.md) | Clones the repo, creates a virtual environment, installs packages, runs tests, and verifies the app works. | **Workspace only**. Installs and runs things inside the project folder. |
+| [**Repair**](repair.md) | Steps in when setup fails. Inspects the error, applies a safe fix, and hands back to Setup (max 3 tries). | **Workspace only**. Fixes config/versions safely. |
 
 ---
 
-## Agent Overview
+## Why split them up?
 
-| Agent | Core Role | Primary Responsibility | Permissions & Boundaries |
-|---|---|---|---|
-| [**Scout**](scout.md) | Pre-Setup Intelligence | Analyzes target repository docs, dependencies, environment constraints, and public GitHub issues/PRs for known pitfalls. | **Read-only**. Never executes build commands or alters code. |
-| [**Setup**](setup.md) | Execution & Verification | Clones code, provisions project-local virtual environments, installs dependencies, builds, tests, verifies application runtime, and authors `SETUP.md`. | **Workspace-scoped write & run**. Only acts within designated directory. |
-| [**Repair**](repair.md) | Diagnosis & Remediation | Diagnoses build/runtime errors, pinpoints root causes against known fixes, applies safe workspace-level corrections, and hands back to Setup (up to 3 attempts). | **Workspace-scoped repair**. Never uses `sudo` / admin or alters global files. |
+- **Keep context clean:** Scout can read a massive README and 10 GitHub issues without filling up Setup's memory with useless text.
+- **Safer by default:** Scout doesn't have write permissions, so it physically can't run sketchy scripts while browsing repos.
+- **Better debugging:** When a build breaks, Setup stops. It doesn't guess or make random edits. It gives the exact error trace to Repair, which specializes in diagnosing errors.
 
 ---
 
-## The Specialization Advantage
+## Agent Details
 
-Combining setup automation with multi-agent orchestration yields distinct advantages over single-agent prompts:
-
-1. **Context hygiene**: Pre-setup research (scanning multiple PRs, reading extensive READMEs) remains separated from setup execution logs, preventing token bloat and hallucination.
-2. **Defensive separation of duty**: Scout cannot accidentally trigger unverified scripts because it lacks write or execute authority.
-3. **Structured failure loops**: When execution fails, Setup does not attempt ad-hoc guesswork; it halts and hands execution context to Repair. Repair diagnoses the exact failure, applies a targeted correction, and hands back control for independent verification.
-
----
-
-## Agent Specifications
-
-Explore the detailed specifications, inputs, behavioral rules, and handoff contracts for each agent:
-
-- [`agents/scout.md`](scout.md) — Detailed specification for the Scout agent.
-- [`agents/setup.md`](setup.md) — Detailed specification for the Setup agent.
-- [`agents/repair.md`](repair.md) — Detailed specification for the Repair agent.
-
+- [`scout.md`](scout.md) — Pre-setup intelligence gathering.
+- [`setup.md`](setup.md) — Running installs and verifying builds.
+- [`repair.md`](repair.md) — Failure diagnosis and self-healing.

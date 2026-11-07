@@ -1,119 +1,73 @@
 # System Architecture
 
-Setup Desk is an agentic workflow architecture designed to automate local open-source project exploration, installation, runtime verification, and error remediation. Orchestrated using [Switch](https://github.com/sandbox-quantum/switch), the system uses Slack as its front-facing interface and coordinates specialized coding agents powered by Codex and OpenCode.
+Setup Desk is a multi-agent workflow that runs via [Switch](https://github.com/sandbox-quantum/switch) and Slack. It coordinates three agents powered by Codex and OpenCode to clone, investigate, set up, and repair repositories locally.
 
 ---
 
-## Architectural Diagram
+## Architecture Diagram
 
 ```mermaid
 flowchart TB
-    subgraph UI ["User Interaction Layer"]
-        SlackUser["Developer via Slack"]
-        SlackBot["Slack Workspace App / Channel"]
-        SlackUser <-->|"Requests & Reports"| SlackBot
+    subgraph UI ["User Interface"]
+        User["Developer in Slack"]
     end
 
-    subgraph Orchestration ["Orchestration Layer (Switch)"]
-        SwitchConsole["Switch Console & Orchestration Engine"]
-        SwitchRoom["Switch Shared Context Room"]
-        SwitchBot["Switch Slack Integration"]
-        
-        SlackBot <-->|"Event Webhooks / API"| SwitchBot
-        SwitchBot <--> SwitchConsole
-        SwitchConsole --- SwitchRoom
+    subgraph SwitchEngine ["Switch Platform"]
+        Router["Switch Orchestrator & Room"]
     end
 
-    subgraph Intelligence ["External Intelligence"]
-        GitHub["GitHub Public Repos, Docs, Issues & PRs"]
+    subgraph GitHubIntel ["External Intel"]
+        GitHub["GitHub Docs, PRs & Issues"]
     end
 
-    subgraph Agents ["Specialized Agent Backends (Codex / OpenCode)"]
-        ScoutAgent["Scout Agent\n(Pre-Setup Intelligence)"]
-        SetupAgent["Setup Agent\n(Execution & Verification)"]
-        RepairAgent["Repair Agent\n(Diagnosis & Remediation)"]
-
-        SwitchRoom -->|"Trigger & Input"| ScoutAgent
-        ScoutAgent -.->|"Query Docs & PRs"| GitHub
-        ScoutAgent -->|"Investigation Report"| SwitchRoom
-
-        SwitchRoom -->|"Dispatch Report & Workspace"| SetupAgent
-        SetupAgent -->|"On Failure: Error Bundle"| SwitchRoom
-
-        SwitchRoom -->|"Failure Handoff"| RepairAgent
-        RepairAgent -->|"Safe Fix & Explanation"| SwitchRoom
-        SwitchRoom -->|"Retry Instruction"| SetupAgent
+    subgraph Agents ["Agent Backends (Codex / OpenCode)"]
+        Scout["Scout Agent\n(Pre-Setup Intel)"]
+        Setup["Setup Agent\n(Install & Verify)"]
+        Repair["Repair Agent\n(Diagnosis & Fixes)"]
     end
 
-    subgraph Target ["Execution Target"]
-        Workspace["Local Project Workspace\n(Isolated Directory / Venv)"]
-        SetupAgent <-->|"Clone, Build, Verify"| Workspace
-        RepairAgent <-->|"Apply Workspace Fix"| Workspace
+    subgraph Target ["Target Machine"]
+        Workspace["Local Workspace Folder\n(.venv / project files)"]
     end
+
+    User <-->|"Slack messages"| Router
+    Router -->|"1. Start analysis"| Scout
+    Scout -.->|"Fetch docs & PRs"| GitHub
+    Scout -->|"2. Scout report"| Router
+    Router -->|"3. Start install"| Setup
+    Setup <-->|"Clone & run"| Workspace
+    Setup -->|"4. Error log"| Router
+    Router -->|"5. Hand to Repair"| Repair
+    Repair -->|"6. Safe patch"| Workspace
+    Repair -->|"7. Retry"| Setup
 ```
 
 ---
 
-## Core Components and Roles
+## The Pieces
 
-### 1. User Interaction Layer: Slack
-Setup Desk does not feature a custom frontend web application. Instead, it embeds directly into existing developer workflows via Slack.
-- **Request Ingestion**: Developers post setup requests (e.g., repository links, branch details, specific testing criteria) in designated Slack channels.
-- **Progress Tracking & Final Delivery**: Status updates, diagnostic logs, and final setup deliverables (`SETUP.md`) are returned directly to the initiating Slack thread.
+### 1. Slack (User Interface)
+No custom web portal needed. You submit repo links directly in a Slack channel, and Setup Desk posts status updates, error warnings, and the finished `SETUP.md` directly into the thread.
 
-### 2. Multi-Agent Orchestration Layer: Switch
-[Switch](https://github.com/sandbox-quantum/switch) acts as the central control plane and execution harness:
-- **Session Management**: Initializes and manages the shared room context across the multi-agent session.
-- **Handoff Coordination**: Controls the structured transitions:
-  1. User request $\rightarrow$ Scout
-  2. Scout report $\rightarrow$ Setup
-  3. Setup failure $\rightarrow$ Repair
-  4. Repair remediation $\rightarrow$ Setup retry
-- **Execution State & Retry Enforcer**: Tracks attempt counts, strictly enforcing the maximum limit of three repair cycles per failure.
+### 2. Switch (The Orchestrator)
+[Switch](https://github.com/sandbox-quantum/switch) coordinates everything:
+- Manages the shared room context between the agents.
+- Routes data when one agent finishes and the next takes over.
+- Enforces the 3-retry limit when errors happen.
+- Connects Slack to the local workspace.
 
-### 3. Agent Backends: Codex and OpenCode
-The operational agents are powered by connected coding agent backends (Codex and OpenCode):
-- **Codex / OpenCode**: Execute language comprehension, codebase inspection, command generation, and code/config editing within the designated execution environment.
+### 3. Codex & OpenCode (Agent Backends)
+Connected models that handle reading code, running commands, and diagnosing errors.
 
-### 4. Repository Intelligence: GitHub
-Before running setup commands, Scout accesses public repository data:
-- `README.md`, `CONTRIBUTING.md`, and project documentation.
-- Package manifests (`pyproject.toml`, `package.json`, etc.).
-- Public GitHub issues and pull requests containing known setup errors and community-tested solutions.
-
-### 5. Target Environment: Local Project Workspace
-The physical filesystem directory where repository files are cloned, environments are provisioned, and builds are verified.
-- **Workspace Containment**: All file modifications and command executions are restricted strictly to this folder.
+### 4. Local Workspace (Target Directory)
+An isolated directory on the machine where code is cloned and virtual environments are created. Agents never work outside this folder.
 
 ---
 
-## Agent Handoffs and Data Flow Contracts
+## How Data Moves Between Agents
 
-Setup Desk avoids ambiguous free-form agent chat by relying on well-defined contracts:
-
-### Handoff 1: Request $\rightarrow$ Scout
-- **Payload**: Repository URL, optional ref/branch, host OS information.
-- **Contract**: Scout executes in read-only mode and compiles the *Scout Investigation Report*.
-
-### Handoff 2: Scout $\rightarrow$ Setup
-- **Payload**: Identified languages, runtimes, package managers, prerequisites checklist, step-by-step setup commands, and known blockers.
-- **Contract**: Setup provisions the local workspace and executes commands sequentially.
-
-### Handoff 3: Setup $\rightarrow$ Repair (On Failure)
-- **Payload**: Failed command, stdout/stderr logs, current workspace file state, attempt count ($1 \le N \le 3$).
-- **Contract**: Repair evaluates root cause and restricts modifications exclusively to workspace-local files.
-
-### Handoff 4: Repair $\rightarrow$ Setup (On Remediation)
-- **Payload**: Explanation of change, list of modified files, specific command to retry.
-- **Contract**: Setup re-executes the failed step and proceeds with verification.
-
-### Handoff 5: Setup $\rightarrow$ User (Via Switch to Slack)
-- **Payload**: Verified `SETUP.md` documentation, execution summary, and runtime verification status.
-
----
-
-## Defensive Boundaries and Failure Modes
-
-1. **Unresolvable Failures**: If Setup encounters an issue that Repair cannot remediate after 3 attempts, the workflow halts and reports the exact blocker to Slack.
-2. **Permission Halts**: If a step requires `sudo`, global registry modification, or external credential access, the agents do not proceed; they flag the requirement for human authorization.
-
+1. **User $\rightarrow$ Scout:** Repo link and target OS information.
+2. **Scout $\rightarrow$ Setup:** Scout report with prerequisites, package managers, and flagged PR fixes.
+3. **Setup $\rightarrow$ Repair (on error):** Exact failed command, exit code, and terminal stderr.
+4. **Repair $\rightarrow$ Setup (after fix):** Explanation of what was changed and which command to retry.
+5. **Setup $\rightarrow$ Slack:** The verified `SETUP.md` and a summary of what worked.

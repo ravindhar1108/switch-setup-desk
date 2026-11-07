@@ -1,39 +1,30 @@
-# Sample Request: Slack Setup Trigger
+# Sample Slack Request
 
-This document illustrates how a developer initiates a setup task using Setup Desk within a connected Slack channel.
-
-> **Note**: This is an illustrative example of the user interaction format.
+Here is what triggering Setup Desk looks like in Slack:
 
 ---
 
-## Slack Interaction Scenario
+**Channel:** `#setup-desk`  
+**User:** `@alex`  
 
-**Channel**: `#setup-desk`  
-**User**: `@alex.dev`  
-**Bot Integration**: `@SetupDesk (Switch Bot)`
+### The Message:
 
-### User Message
-
-> **@alex.dev**:  
-> `@SetupDesk Set up https://github.com/pallets/flask in my workspace. Investigate known setup issues first, install dependencies, run the project, and recover from safe setup failures if necessary.`
+> `@SetupDesk Set up https://github.com/pallets/flask in my workspace. Check known issues first, install dependencies, run tests, and fix any safe setup errors.`
 
 ---
 
-## What the System Does in Response
+### What happens in the thread:
 
-1. **Initial Acknowledgment**:  
-   `@SetupDesk` immediately replies in a thread:
-   > *“Received request for `pallets/flask`. Initializing Switch room session `#sd-flask-702`.*  
-   > *Dispatching **Scout** for pre-setup intelligence gathering...”*
-
-2. **Progress Notifications**:  
-   As agents transition through handoffs, threaded updates keep the developer informed:
-   - Scout finishes investigation $\rightarrow$ posts summary checklist.
-   - Setup clones repository $\rightarrow$ provisions project-local virtual environment (`.venv`).
-   - Setup encounters a dependency conflict $\rightarrow$ invokes Repair.
-   - Repair diagnoses the issue, applies a project-local fix, and passes back to Setup.
-   - Setup retries installation, runs test suites, verifies runtime boot, and writes `SETUP.md`.
-
-3. **Final Delivery**:  
-   `@SetupDesk` posts the verified `SETUP.md` and a summary of actions taken into the Slack thread.
-
+1. **Bot pings back:**  
+   > *"Got it! Launching Scout to inspect `pallets/flask`..."*
+2. **Scout posts findings:**  
+   > *"Detected Python project with `flit_core`. Warning: On Python 3.11+, dev dependency `x` has a known version conflict. Handing to Setup."*
+3. **Setup clones & installs:**  
+   > *"Created `.venv`. Running `pip install -e .[dev]`..."*
+4. **Failure & Repair intervention:**  
+   > *"Install failed with dependency conflict. Repair is stepping in (Attempt 1 of 3)..."*  
+   > *"Repair relaxed pinned constraint in `pyproject.toml`. Retrying install..."*
+5. **Setup verifies & finishes:**  
+   > *"Install succeeded! Running `pytest`... all tests passed.*  
+   > *Verified runtime with `flask --help`.*  
+   > *Created `SETUP.md`. You're ready to code!"*

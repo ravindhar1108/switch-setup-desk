@@ -1,96 +1,94 @@
-# Setup Desk: 2–3 Minute Hackathon Demo Script
+# 2–3 Minute Demo Video Script
 
-**Hackathon**: Flip the Switch Hackathon  
-**Track**: Business Workflow  
-**Project**: Setup Desk — Your AI-powered assistant for setting up open-source projects.
+**Hackathon:** Flip the Switch Hackathon  
+**Track:** Business Workflow  
+**Project:** Setup Desk  
 
 ---
 
-## Video / Presentation Breakdown
+## Video Outline
 
-| Timestamp | Section | Visual Focus |
+| Time | What you're saying | What you're showing |
 |---|---|---|
-| **0:00 – 0:35** | Introduction, Problem & Personal Story | Presenter / Title Slide |
-| **0:35 – 0:55** | The Solution & Architecture | Architecture Diagram & Switch Console |
-| **0:55 – 1:20** | Scout: Pre-Setup Intelligence | Slack Request & Scout Output |
-| **1:20 – 1:45** | Setup & The Self-Healing Failure | Setup Running in Workspace & Error Log |
-| **1:45 – 2:20** | Repair & Successful Verification | Repair Diagnosis, Fix & Setup Retry |
-| **2:20 – 2:45** | Outcome, Verification & Wrap-up | Final `SETUP.md` & Slack Delivery |
+| **0:00 – 0:30** | The problem & personal story | You on camera or title slide |
+| **0:30 – 0:50** | The solution & the 3 agents | Architecture graphic / Switch Console |
+| **0:50 – 1:15** | Scout finds gotchas before install | Slack message & Scout's reply |
+| **1:15 – 1:40** | Setup runs, hits an install error | Terminal or Switch logs showing error |
+| **1:40 – 2:15** | Repair diagnoses, fixes, and retries | Repair's patch & Setup passing |
+| **2:15 – 2:40** | Verification, `SETUP.md`, and wrap-up | Final `SETUP.md` & Slack completion |
 
 ---
 
 ## Spoken Script
 
-### [0:00 – 0:35] Introduction, Problem & Personal Story
-*(Speaker on camera or showing title slide)*
+### [0:00 – 0:30] The Problem & The Story
+*(On camera or title slide)*
 
-"Hi everyone! I’m excited to present **Setup Desk**, our project for the **Flip the Switch Hackathon** in the Business Workflow track.
+"Hey everyone! This is **Setup Desk**, our project for the **Flip the Switch Hackathon** in the Business Workflow track.
 
-Every developer has been there: you find an exciting open-source project on GitHub, clone it, and spend the next three hours wrestling with broken installs, missing dependencies, and outdated README instructions.
+Every developer knows the pain of setting up someone else's open-source project. You clone the repo, run the install commands, and spend the next two hours fighting broken dependencies and outdated docs.
 
-The motivation for this project actually came directly from my own experience. While trying to run Switch on Windows, I ran into an issue where the Antigravity integration wouldn’t work. I spent hours troubleshooting, only to find out from the maintainer that the fix was already sitting right there in an open pull request!
+This project actually came straight from my own frustration during this hackathon. I was trying to run Switch on Windows, and the Antigravity integration wouldn’t work. I spent two hours debugging, only to reach out to the maintainer and find out the fix was already sitting in an open pull request!
 
-That made me realize: developers waste countless hours debugging setup problems that community members have already solved. That's why I built Setup Desk."
-
----
-
-### [0:35 – 0:55] The Solution & Architecture
-*(Show Architecture Diagram or Switch Console)*
-
-"Setup Desk is an AI-powered assistant for setting up open-source repositories locally. 
-
-Instead of manual troubleshooting, you simply submit a repository link in Slack. Behind the scenes, **Switch** orchestrates three specialized agents powered by Codex and OpenCode:
-
-1. **Scout** — which investigates before we touch anything.
-2. **Setup** — which handles isolated installation and runtime verification.
-3. **Repair** — our self-healing agent that diagnoses and fixes errors."
+People waste hours solving problems that the community has already solved. So I built Setup Desk to fix that."
 
 ---
 
-### [0:55 – 1:20] Scout: Pre-Setup Intelligence
-*(Show Slack message and Scout's output)*
+### [0:30 – 0:50] The Solution & The 3 Agents
+*(Show architecture graphic or Switch Console)*
 
-"Let’s see it in action. In our `#setup-desk` Slack channel, I ask:  
-*‘Set up pallets/flask in my workspace. Investigate known setup issues first, install dependencies, run the project, and recover from safe setup failures if necessary.’*
+"Setup Desk is an assistant that investigates open-source repositories, sets them up locally in an isolated environment, and heals itself when things fail.
 
-Immediately, Switch initiates the room and triggers **Scout**.
-
-Notice that Scout is strictly read-only. It scans the repository files, checks prerequisites, and searches public GitHub issues and pull requests to flag known compatibility traps on our host machine. It bundles this into a clean intelligence report for Setup."
-
----
-
-### [1:20 – 1:45] Setup & The Failure
-*(Show Setup terminal execution and error output)*
-
-"Next, Switch hands control over to **Setup**. 
-
-Setup creates an isolated workspace, provisions a project-local virtual environment, and begins installing dependencies. Notice that Setup never touches global system packages.
-
-Now watch what happens when an installation error occurs—here, an outdated dependency version fails on Python 3.11. In a traditional script, everything would just crash. But Setup detects the error, halts execution, and immediately hands the complete diagnostic logs over to **Repair**."
+You don't need a custom website—you just drop a link in Slack. Behind the scenes, **Switch** coordinates three specialized AI agents:
+1. **Scout** — investigates docs and GitHub issues before running anything.
+2. **Setup** — creates a virtual environment, installs packages, and tests the app.
+3. **Repair** — our troubleshooter that steps in when something breaks."
 
 ---
 
-### [1:45 – 2:20] Repair & The Self-Healing Loop
+### [0:50 – 1:15] Scout in Action
+*(Show Slack channel with request and Scout's output)*
+
+"Let’s look at a quick demo. In Slack, I ask:  
+*‘Set up pallets/flask in my workspace. Check known issues first, install dependencies, run tests, and fix any safe setup errors.’*
+
+Switch kicks off **Scout**. 
+
+Scout is strictly read-only—it won't touch any files. It checks the repo, detects Python and `flit_core`, and notices that on Python 3.11+, an outdated pinned dev dependency has a known resolution conflict. It hands these findings directly to Setup."
+
+---
+
+### [1:15 – 1:40] Setup & The Failure
+*(Show Setup terminal execution and error)*
+
+"Switch hands control to **Setup**. Setup creates a clean virtual environment so it doesn't mess with your global packages.
+
+When Setup runs `pip install`, it hits the exact dependency conflict Scout flagged. 
+
+Normally, an automated script would just die here and leave you stranded. But Setup catches the failure, stops immediately, and hands the error logs to **Repair**."
+
+---
+
+### [1:40 – 2:15] Repair & The Self-Healing Loop
 *(Show Repair diagnosis and Setup retry in Switch room)*
 
-"This is Setup Desk’s core differentiator: the **Self-Healing Loop**.
+"This is Setup Desk's secret weapon: **The Self-Healing Loop**.
 
-Repair steps in, parses the traceback, and identifies that relaxing a patch-level pin in the workspace configuration fixes the issue safely. 
+Repair looks at the error trace, sees the incompatible version pin, and relaxes it in `pyproject.toml`. 
 
-Crucially, Repair enforces strict safety boundaries: no admin rights, no system-level modifications, and a hard cap of three repair attempts to avoid runaway loops.
+It has strict safety rules: everything stays inside the workspace, no admin rights, and a hard cap of 3 tries so it never loops forever.
 
-Repair applies the targeted fix to the local file, explains exactly what changed and why, and hands control back to Setup. Setup automatically retries the command—and this time, it succeeds!"
+Repair applies the fix, explains what it changed, and hands control back to Setup. Setup re-runs the install—and it passes!"
 
 ---
 
-### [2:20 – 2:45] Outcome & Wrap-up
-*(Show verified runtime, `SETUP.md`, and Slack notification)*
+### [2:15 – 2:40] Verification & Wrap-up
+*(Show pytest passing, `flask --help`, and the generated `SETUP.md`)*
 
-"Setup doesn’t stop at package installation—it actually verifies that the test suite passes and that the CLI runs.
+"Setup doesn't just install packages and assume it worked—it runs `pytest` to make sure tests pass, and launches `flask --help` to verify runtime execution.
 
-Once verified, Setup generates a clean, permanent `SETUP.md` document in the repository root and sends a completion notification right back to our Slack thread.
+Finally, it writes a clean `SETUP.md` file in the workspace so you have working instructions for your project, and drops a message in Slack saying you're ready to code.
 
-With Switch orchestrating Scout, Setup, and Repair, setting up an open-source project is no longer an afternoon of frustration—it's an autonomous, self-healing workflow.
+With Switch coordinating the agents, setting up open-source repos goes from hours of troubleshooting to a quick message in Slack.
 
-Thank you!"
-
+Thanks for watching!"

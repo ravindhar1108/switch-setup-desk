@@ -1,105 +1,71 @@
 # Agent: Scout
 
-> **Role Summary**: Investigates the repository, documentation, GitHub issues and PRs to identify potential setup blockers before execution.
+> **What Scout does:** Checks the repository, documentation, and GitHub issues/PRs to catch setup problems before running any commands.
 
 ---
 
 ## Purpose
 
-The **Scout** agent is responsible for pre-setup intelligence gathering. Before any dependencies are installed or build commands are run, Scout thoroughly inspects the target repository and relevant public community signals to assemble a structured brief for the [Setup](setup.md) agent.
+Scout is the detective. Before anyone runs `npm install` or `pip install`, Scout reads the repo, figures out what tools are required, and searches for known bugs or gotchas on GitHub.
 
-This pre-setup research eliminates guesswork and preempts common failures caused by missing toolchains, undocumented environment variables, or platform-specific incompatibilities.
+This prevents running blindly into setup errors that someone else already solved in an open pull request or closed issue.
 
 ---
 
 ## Inputs
 
-Scout receives setup requests initiated by the user via Slack and dispatched through the Switch orchestrator:
-
-- **Target Repository URL**: (e.g., `https://github.com/pallets/flask`).
-- **Target Ref / Branch**: Optional branch, commit, or tag (defaults to primary default branch).
-- **Target OS / Environment Information**: The host operating system characteristics provided by the Switch room runtime.
-- **User Directives**: Optional custom requirements (e.g., "focus on development setup" or "check Python 3.11 compatibility").
-
----
-
-## Investigation Steps
-
-When invoked, Scout follows a systematic exploration sequence:
-
-1. **Repository Structure Analysis**:
-   - Inspects the top-level directory and detects manifest files (`pyproject.toml`, `requirements.txt`, `package.json`, `Cargo.toml`, `go.mod`, etc.).
-   - Identifies the primary programming languages, runtimes, and build tools.
-
-2. **Documentation Review**:
-   - Reads `README.md`, `CONTRIBUTING.md`, `INSTALL.md`, and dedicated documentation folders (e.g., `docs/`).
-   - Extracts recommended installation commands, runtime prerequisites, and recommended virtual environment setups.
-
-3. **Prerequisite & Environment Inspection**:
-   - Identifies required language versions, system libraries, and external services (e.g., databases, Redis, Docker).
-   - Identifies necessary environment variables, template files (such as `.env.example`), or configuration flags.
-
-4. **Public Issue and Pull Request Research**:
-   - When public GitHub metadata is accessible, searches open and recently closed issues and PRs for keywords related to the host platform (e.g., "Windows build", "pip install failure", "wheel error").
-   - Flags known bugs with existing solutions or workarounds (e.g., pins to specific dependency versions or flags).
-
-5. **Risk & Blocker Identification**:
-   - Evaluates whether certain steps require elevated privileges, proprietary software, or missing host toolchains.
-   - Summarizes potential friction points.
+Scout gets started when a user posts in Slack:
+- **Repo URL:** (e.g. `https://github.com/pallets/flask`)
+- **Branch / Tag:** (optional, defaults to main)
+- **Host OS:** (Windows, macOS, or Linux)
+- **User notes:** (e.g. "set this up for local dev")
 
 ---
 
-## Responsibilities & Deliverables
+## What Scout Looks For
 
-- Compiles all findings into a structured **Scout Investigation Report** containing:
-  - Repository overview (language, framework, package manager).
-  - Prerequisites checklist.
-  - Step-by-step setup procedure.
-  - Environment configuration requirements.
-  - Known issues, open PR references, and recommended preventative adjustments.
-- Transmits this report directly to the [Setup](setup.md) agent via the Switch room handoff.
+1. **Project structure:** Detects `pyproject.toml`, `package.json`, `Cargo.toml`, etc., to identify the language, framework, and package manager.
+2. **Setup docs:** Reads `README.md`, `CONTRIBUTING.md`, or docs folders for install instructions and required versions.
+3. **Prerequisites:** Notes required runtimes (e.g. Python 3.10+, Node 18+), tools (Docker, Make), and environment variables (`.env.example`).
+4. **GitHub Issues & PRs:** Searches public GitHub discussions for recent install errors, Windows compatibility bugs, or pinned version conflicts.
+5. **Red flags:** Highlights anything requiring root/admin access or special build tools.
 
 ---
 
-## Output and Handoff Contract
+## Output (The Scout Report)
 
-Scout outputs a clean markdown payload with standardized sections:
+Scout puts a simple markdown report into the Switch room:
 
 ```markdown
-# Scout Investigation Report: [Repository Name]
+# Scout Report: [Repo Name]
 
-## 1. Project Overview
-- Primary Language & Version:
-- Framework / Build System:
-- Detected Package Manager:
+## 1. Project Info
+- Language & Version:
+- Package Manager:
+- Build Tool:
 
 ## 2. Prerequisites
-- [ ] Required Runtimes:
-- [ ] Required System Packages:
+- [ ] Required runtimes & versions:
+- [ ] Environment files (.env.example):
 
-## 3. Recommended Setup Sequence
-1. ...
-2. ...
+## 3. Recommended Setup Commands
+1. Create isolated environment
+2. Install dependencies
+3. Run tests / smoke test
 
-## 4. Environment Configuration
-- Detected Config Files / Samples:
-- Key Variables:
-
-## 5. Potential Blockers & Known Issues
-- Issue / PR Reference:
-- Potential Symptom:
-- Recommended Workaround:
+## 4. Known Issues & PR Fixes
+- Issue/PR: [Link or title]
+- Warning: [What might break on this OS]
+- Workaround: [Recommended fix if it fails]
 ```
 
-Once published to the Switch room, the Switch orchestrator triggers the Setup agent.
+Once posted, Switch passes this report directly to **Setup**.
 
 ---
 
-## Operational Restrictions & Safety Boundaries
+## Safety Rules
 
-> [!IMPORTANT]
-> **Strict Read-Only Enforcement**
-> - Scout is purely an analytical agent. It **must never** execute build commands, install packages, or modify any files in the workspace.
-> - Scout does not clone writable repositories; it only fetches and analyzes read-only file trees and documentation.
-> - Scout operates strictly under standard user privileges.
-
+- **Scout is 100% read-only.**
+- It never creates, edits, or deletes files.
+- It never runs shell commands, build scripts, or package installs.
+- It only reads public documentation and repository structure.

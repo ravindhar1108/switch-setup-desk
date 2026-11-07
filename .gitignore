@@ -1,0 +1,76 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+credentials.json
+secrets.json
+token.json
+
+# Operating System metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Logs and runtime artifacts
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node / Package managers (if any target repos are cloned locally)
+node_modules/
+.pnp
+.pnp.js
+
+# Temporary files, caches, and test artifacts
+tmp/
+temp/
+*.tmp
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local target workspaces (cloned repos during agent execution)
+workspace/
+workspaces/
+target-repo/
+sandbox/
+
+# Generated temporary artifacts
+*.bak
+*.orig
+
